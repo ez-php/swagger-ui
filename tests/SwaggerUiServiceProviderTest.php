@@ -114,6 +114,11 @@ final class SwaggerUiFakeContainer implements ContainerInterface
         return ($this->bindings[$abstract])($this);
     }
 
+    public function has(string $abstract): bool
+    {
+        return isset($this->bindings[$abstract]);
+    }
+
     public function instance(string $abstract, object $instance): void
     {
         $this->bindings[$abstract] = static fn (ContainerInterface $_c): object => $instance;

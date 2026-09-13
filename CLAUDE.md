@@ -263,7 +263,7 @@ Invokable controller. Constructed with `$specUrl`, `$renderer`, and `$title` (al
 
 ### SwaggerUiServiceProvider (`src/SwaggerUiServiceProvider.php`)
 
-`register()` binds `SwaggerUiController` lazily, reading `swagger-ui.spec_url`, `swagger-ui.renderer`, and `app.name` from `ConfigInterface` (defaulting to `/openapi.json`, `swagger-ui`, and `'API Documentation'` respectively) with a `try/catch` fallback when config isn't bound. `boot()` reads `swagger-ui.endpoint` (default `/docs`) and registers `GET {endpoint}` against the controller's `__invoke`, also wrapped in `try/catch` so the provider degrades gracefully in CLI/test contexts where `Router` isn't bound.
+`register()` binds `SwaggerUiController` lazily, reading `swagger-ui.spec_url`, `swagger-ui.renderer`, and `app.name` from `ConfigInterface` (defaulting to `/openapi.json`, `swagger-ui`, and `'API Documentation'` respectively) via `$app->has(ConfigInterface::class)`, falling back to the defaults when config isn't bound. `boot()` reads `swagger-ui.endpoint` (default `/docs`) and registers `GET {endpoint}` against the controller's `__invoke`, guarded the same way with `$this->app->has(Router::class)` so the provider degrades gracefully in CLI/test contexts where `Router` isn't bound.
 
 ---
 

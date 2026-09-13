@@ -39,7 +39,7 @@ final class SwaggerUiServiceProvider extends ServiceProvider
             $renderer = 'swagger-ui';
             $title = 'API Documentation';
 
-            try {
+            if ($app->has(ConfigInterface::class)) {
                 $config = $app->make(ConfigInterface::class);
                 $raw = $config->get('swagger-ui.spec_url', '/openapi.json');
                 $specUrl = is_string($raw) ? $raw : '/openapi.json';
@@ -47,8 +47,6 @@ final class SwaggerUiServiceProvider extends ServiceProvider
                 $renderer = is_string($raw) ? $raw : 'swagger-ui';
                 $raw = $config->get('app.name', 'API Documentation');
                 $title = is_string($raw) ? $raw : 'API Documentation';
-            } catch (\Throwable) {
-                // Config not bound — use defaults.
             }
 
             return new SwaggerUiController($specUrl, $renderer, $title);
@@ -63,22 +61,20 @@ final class SwaggerUiServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        try {
-            $router = $this->app->make(Router::class);
-
-            $endpoint = '/docs';
-
-            try {
-                $config = $this->app->make(ConfigInterface::class);
-                $raw = $config->get('swagger-ui.endpoint', '/docs');
-                $endpoint = is_string($raw) ? $raw : '/docs';
-            } catch (\Throwable) {
-                // Config not bound — use default endpoint.
-            }
-
-            $router->get($endpoint, [SwaggerUiController::class, '__invoke']);
-        } catch (\Throwable) {
-            // Router not available — route registration skipped.
+        if (!$this->app->has(Router::class)) {
+            return;
         }
+
+        $router = $this->app->make(Router::class);
+
+        $endpoint = '/docs';
+
+        if ($this->app->has(ConfigInterface::class)) {
+            $config = $this->app->make(ConfigInterface::class);
+            $raw = $config->get('swagger-ui.endpoint', '/docs');
+            $endpoint = is_string($raw) ? $raw : '/docs';
+        }
+
+        $router->get($endpoint, [SwaggerUiController::class, '__invoke']);
     }
 }
