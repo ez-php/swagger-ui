@@ -26,9 +26,9 @@ or environment:
 
 ```php
 return [
-    'endpoint' => env('SWAGGER_UI_ENDPOINT', '/docs'),
-    'spec_url' => env('SWAGGER_UI_SPEC_URL', '/openapi.json'),
-    'renderer' => env('SWAGGER_UI_RENDERER', 'swagger-ui'), // or 'redoc'
+    'endpoint' => getenv('SWAGGER_UI_ENDPOINT') ?: '/docs',
+    'spec_url' => getenv('SWAGGER_UI_SPEC_URL') ?: '/openapi.json',
+    'renderer' => getenv('SWAGGER_UI_RENDERER') ?: 'swagger-ui', // or 'redoc'
 ];
 ```
 
