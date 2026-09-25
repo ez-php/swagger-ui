@@ -32,7 +32,7 @@ return [
 ];
 ```
 
-Both renderers load their assets from a CDN (jsDelivr) — nothing is vendored
+Both renderers load their assets from a CDN (jsDelivr), pinned to exact versions (`swagger-ui-dist@5.33.0`, `redoc@2.5.4`) with Subresource Integrity hashes — nothing is vendored
 by this module. Apply authentication or rate limiting to the `/docs` route in
 your own application's service provider if the documentation should not be
 publicly accessible.

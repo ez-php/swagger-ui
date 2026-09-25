@@ -53,6 +53,24 @@ final class SwaggerUiControllerTest extends TestCase
         self::assertStringContainsString('redoc.standalone.js', $response->body());
     }
 
+    public function testCdnAssetsArePinnedWithSubresourceIntegrity(): void
+    {
+        foreach (['swagger-ui', 'redoc'] as $renderer) {
+            $body = (new SwaggerUiController('/openapi.json', $renderer, 'My API'))($this->makeRequest())->body();
+
+            self::assertMatchesRegularExpression('#cdn\.jsdelivr\.net/npm/[a-z-]+@\d+\.\d+\.\d+/#', $body);
+            self::assertDoesNotMatchRegularExpression('#@\d+/#', $body, 'CDN assets must use an exact version');
+
+            preg_match_all('#<(?:script|link)\b[^>]*cdn\.jsdelivr\.net[^>]*>#', $body, $tags);
+            self::assertNotEmpty($tags[0]);
+
+            foreach ($tags[0] as $tag) {
+                self::assertMatchesRegularExpression('#integrity="sha384-[A-Za-z0-9+/=]{64}"#', $tag);
+                self::assertStringContainsString('crossorigin="anonymous"', $tag);
+            }
+        }
+    }
+
     public function testUnknownRendererFallsBackToSwaggerUi(): void
     {
         $controller = new SwaggerUiController('/openapi.json', 'something-else', 'My API');
