@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use EzPhp\Contracts\ContainerInterface;
+use EzPhp\Contracts\RouterInterface;
 use EzPhp\Routing\Router;
 use EzPhp\SwaggerUI\SwaggerUiController;
 use EzPhp\SwaggerUI\SwaggerUiServiceProvider;
@@ -25,7 +26,7 @@ final class SwaggerUiServiceProviderTest extends TestCase
     {
         $this->container = new SwaggerUiFakeContainer();
         $this->router = new Router($this->container);
-        $this->container->instance(Router::class, $this->router);
+        $this->container->instance(RouterInterface::class, $this->router);
         $this->container->instance(ContainerInterface::class, $this->container);
 
         $this->provider = new SwaggerUiServiceProvider($this->container);

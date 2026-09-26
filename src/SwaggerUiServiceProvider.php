@@ -6,8 +6,8 @@ namespace EzPhp\SwaggerUI;
 
 use EzPhp\Contracts\ConfigInterface;
 use EzPhp\Contracts\ContainerInterface;
+use EzPhp\Contracts\RouterInterface;
 use EzPhp\Contracts\ServiceProvider;
-use EzPhp\Routing\Router;
 
 /**
  * Service provider for the ez-php/swagger-ui module.
@@ -61,11 +61,11 @@ final class SwaggerUiServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (!$this->app->has(Router::class)) {
+        if (!$this->app->has(RouterInterface::class)) {
             return;
         }
 
-        $router = $this->app->make(Router::class);
+        $router = $this->app->make(RouterInterface::class);
 
         $endpoint = '/docs';
 
