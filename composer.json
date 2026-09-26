@@ -1,6 +1,6 @@
 {
   "name": "ez-php/swagger-ui",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Serves Swagger UI / ReDoc documentation for the OpenAPI spec produced by ez-php/openapi",
   "type": "library",
   "license": "MIT",
