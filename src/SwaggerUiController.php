@@ -67,7 +67,10 @@ final class SwaggerUiController
     private function renderSwaggerUi(): string
     {
         $title = htmlspecialchars($this->title, ENT_QUOTES);
-        $specUrl = htmlspecialchars($this->specUrl, ENT_QUOTES);
+        // Inside <script>, HTML escaping is wrong (`&` would reach the browser as
+        // `&amp;`): encode as a JS string literal, with <, >, &, ' and " hex-escaped
+        // so the value cannot close the script tag.
+        $specUrl = json_encode($this->specUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         $css = self::SWAGGER_CSS;
         $cssSri = self::SWAGGER_CSS_SRI;
         $js = self::SWAGGER_JS;
@@ -87,7 +90,7 @@ final class SwaggerUiController
                 <script>
                     window.onload = function () {
                         window.ui = SwaggerUIBundle({
-                            url: "{$specUrl}",
+                            url: {$specUrl},
                             dom_id: "#swagger-ui",
                         });
                     };

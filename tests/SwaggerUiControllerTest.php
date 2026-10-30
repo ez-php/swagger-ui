@@ -90,6 +90,22 @@ final class SwaggerUiControllerTest extends TestCase
         self::assertStringNotContainsString('x="><script>', $response->body());
     }
 
+    public function testSwaggerUiSpecUrlIsEncodedForTheScriptContext(): void
+    {
+        $body = (new SwaggerUiController('/openapi.json?a=1&b="</script><script>alert(1)</script>', 'swagger-ui', 'My API'))($this->makeRequest())->body();
+
+        self::assertStringContainsString('url: "/openapi.json?a=1\\u0026b=\\u0022\\u003C/script\\u003E', $body);
+        self::assertStringNotContainsString('&amp;', $body);
+        self::assertStringNotContainsString('</script><script>alert(1)', $body);
+    }
+
+    public function testRedocSpecUrlStaysHtmlAttributeEscaped(): void
+    {
+        $body = (new SwaggerUiController('/openapi.json?a=1&b="x"', 'redoc', 'My API'))($this->makeRequest())->body();
+
+        self::assertStringContainsString('spec-url="/openapi.json?a=1&amp;b=&quot;x&quot;"', $body);
+    }
+
     private function makeRequest(): Request
     {
         return new Request('GET', '/docs');
