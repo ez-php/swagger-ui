@@ -56,8 +56,8 @@ final class SwaggerUiServiceProvider extends ServiceProvider
     /**
      * Register the documentation route.
      *
-     * Wrapped in try/catch so the provider degrades gracefully in CLI and
-     * test contexts where the Router is not bound.
+     * Skipped (via has()) when no RouterInterface is bound, so the provider
+     * degrades gracefully in CLI and test contexts.
      */
     public function boot(): void
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use EzPhp\Contracts\ConfigInterface;
 use EzPhp\Contracts\ContainerInterface;
 use EzPhp\Contracts\RouterInterface;
 use EzPhp\Routing\Router;
@@ -84,6 +85,50 @@ final class SwaggerUiServiceProviderTest extends TestCase
         self::assertStringContainsString('/openapi.json', $response->body());
         self::assertStringContainsString('swagger-ui-bundle.js', $response->body());
     }
+
+    public function testConfigValuesReachTheControllerAndTheRoute(): void
+    {
+        $this->container->instance(ConfigInterface::class, new SwaggerUiFakeConfig([
+            'swagger-ui.spec_url' => '/api/spec.json',
+            'swagger-ui.renderer' => 'redoc',
+            'swagger-ui.endpoint' => '/api/docs',
+            'app.name' => 'Billing API',
+        ]));
+        $this->provider->register();
+        $this->provider->boot();
+
+        $body = $this->container->make(SwaggerUiController::class)(new \EzPhp\Http\Request('GET', '/api/docs'))->body();
+
+        self::assertStringContainsString('/api/spec.json', $body);
+        self::assertStringContainsString('redoc', $body);
+        self::assertStringNotContainsString('swagger-ui-bundle.js', $body);
+        self::assertStringContainsString('<title>Billing API</title>', $body);
+
+        $paths = array_map(static fn (array $route): string => $route['method'] . ' ' . $route['path'], $this->router->toCache());
+        self::assertContains('GET /api/docs', $paths);
+        self::assertNotContains('GET /docs', $paths);
+    }
+
+    public function testNonStringConfigValuesFallBackToDefaults(): void
+    {
+        $this->container->instance(ConfigInterface::class, new SwaggerUiFakeConfig([
+            'swagger-ui.spec_url' => ['not', 'a', 'string'],
+            'swagger-ui.renderer' => 42,
+            'swagger-ui.endpoint' => false,
+            'app.name' => null,
+        ]));
+        $this->provider->register();
+        $this->provider->boot();
+
+        $body = $this->container->make(SwaggerUiController::class)(new \EzPhp\Http\Request('GET', '/docs'))->body();
+
+        self::assertStringContainsString('/openapi.json', $body);
+        self::assertStringContainsString('swagger-ui-bundle.js', $body);
+        self::assertStringContainsString('<title>API Documentation</title>', $body);
+
+        $paths = array_map(static fn (array $route): string => $route['method'] . ' ' . $route['path'], $this->router->toCache());
+        self::assertContains('GET /docs', $paths);
+    }
 }
 
 // ─── Fixture ─────────────────────────────────────────────────────────────────
@@ -123,5 +168,24 @@ final class SwaggerUiFakeContainer implements ContainerInterface
     public function instance(string $abstract, object $instance): void
     {
         $this->bindings[$abstract] = static fn (ContainerInterface $_c): object => $instance;
+    }
+}
+
+/**
+ * Array-backed ConfigInterface: returns the stored value as-is, so tests can
+ * hand the provider values of the wrong type.
+ */
+final readonly class SwaggerUiFakeConfig implements ConfigInterface
+{
+    /**
+     * @param array<string, mixed> $values
+     */
+    public function __construct(private array $values)
+    {
+    }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return array_key_exists($key, $this->values) ? $this->values[$key] : $default;
     }
 }

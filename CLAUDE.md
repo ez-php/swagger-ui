@@ -151,7 +151,7 @@ php make_module.php <name> --description="..." --services=mysql,redis --extensio
 
 `<name>` is the kebab-case package name; the namespace is derived as
 `EzPhp\<PascalCase>` (each `-`-separated word upper-cased) unless `--namespace=`
-overrides it. Existing exceptions the guess gets wrong: `asyncapi` → `AsyncApi`,
+overrides it. Existing exceptions the guess gets wrong: `asyncapi` → `AsyncApi`, `asyncapi-ui` → `AsyncApiUi`,
 `bignum` → `BigNum`, `dataloader` → `DataLoader`, `dotenv` → `Env`, `graphql` → `GraphQL`, `graphql-subscriptions` → `GraphQLSubscriptions`, `oauth` → `OAuth`,
 `opcache` → `OPCache`, `openapi` → `OpenApi`, `qrcode` → `QrCode`, `swagger-ui` → `SwaggerUI`, `webauthn` → `WebAuthn` and
 `websocket` → `WebSocket`; `websocket-client` → `WebsocketClient`, `websocket-tls` → `WebsocketTls`,
@@ -279,7 +279,7 @@ src/
 tests/
 ├── TestCase.php                       — Base PHPUnit test case
 ├── SwaggerUiControllerTest.php        — HTTP 200, HTML content-type, spec URL/title embedding, renderer fallback, HTML escaping
-└── SwaggerUiServiceProviderTest.php   — Container binding, route registration, graceful degradation without Router/Config
+└── SwaggerUiServiceProviderTest.php   — Container binding, route registration, graceful degradation without Router/Config, config values (spec_url/renderer/endpoint/app.name) and non-string fallbacks
 ```
 
 ---
@@ -312,7 +312,7 @@ Invokable controller. Constructed with `$specUrl`, `$renderer`, and `$title` (al
 No external infrastructure required — all tests run in-process.
 
 - `SwaggerUiControllerTest` — constructs the controller directly with fixed constructor args. Covers: HTTP 200, HTML content-type, both renderers embedding the spec URL/title/CDN script tag, unknown-renderer fallback to Swagger UI, and HTML-escaping of `$specUrl`/`$title`.
-- `SwaggerUiServiceProviderTest` — constructs the framework `Router` (a `require-dev` dependency, which also proves it satisfies `RouterInterface`) bound as `RouterInterface` in a minimal fake `ContainerInterface` (no full `Application` bootstrap), mirroring `ez-php/openapi`'s `OpenApiServiceProviderTest` pattern. Covers: controller binding, `GET /docs` route registration, graceful degradation when `RouterInterface` isn't bound, and correct defaults when `ConfigInterface` isn't bound.
+- `SwaggerUiServiceProviderTest` — constructs the framework `Router` (a `require-dev` dependency, which also proves it satisfies `RouterInterface`) bound as `RouterInterface` in a minimal fake `ContainerInterface` (no full `Application` bootstrap), mirroring `ez-php/openapi`'s `OpenApiServiceProviderTest` pattern. Covers: controller binding, `GET /docs` route registration, graceful degradation when `RouterInterface` isn't bound, correct defaults when `ConfigInterface` isn't bound, every config key reaching the controller and the route (`SwaggerUiFakeConfig`), and non-string config values falling back to the defaults.
 - Test classes live in the shared `Tests\` namespace but must be uniquely named
   across the whole monorepo — the root `phpunit.xml` loads every package in one
   process, so a duplicate name is a fatal error, not a test failure. Prefix with
